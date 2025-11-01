@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 import type { EquilibriumPoint } from '../types';
 
@@ -13,25 +12,31 @@ const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
  */
 export async function generateOdeFunction(odeString: string, varNames: string[], paramNames: string[]): Promise<string> {
     const prompt = `
-        Convert the following system of Ordinary Differential Equations (ODEs) into the body of a JavaScript function.
-        The function will receive arguments (t, y, params).
-        'y' is an array of state variables: [${varNames.join(', ')}].
-        'params' is an object of parameters: {${paramNames.join(', ')}}.
+        Convert the following system of Ordinary Differential Equations (ODEs) into a JavaScript function body.
+        
+        The state variables are: ${varNames.join(', ')}.
+        The parameters are: ${paramNames.join(', ')}.
 
-        The function must return an array of the derivatives in the correct order: [d(${varNames[0]})/dt, d(${varNames[1]})/dt, ...].
+        These variables and parameters will be available in the scope where your generated code will be executed.
+        You MUST assume variables like '${varNames.join(`', '`)}' and parameters like '${paramNames.join(`', '`)}' are already defined and in scope.
+        
+        Your output should be ONLY a single line of code: a 'return' statement with an array of the derivatives.
+        Do NOT include a function definition (e.g., "function(...) { ... }").
+
+        The return value must be an array of the derivatives in the correct order: [d(${varNames[0]})/dt, d(${varNames[1]})/dt, ...].
         Use standard JavaScript Math functions (e.g., Math.pow, Math.sin).
-        Do not include the function definition, only the return statement and any necessary calculations.
 
         Here are the equations:
         ---
         ${odeString}
         ---
 
-        Example for "dx/dt = a * x":
-        return [params.a * y[0]];
+        Example for "dx/dt = a * x" where variable is 'x' and parameter is 'a':
+        Your entire output must be:
+        return [a * x];
         
-        Example for "dx/dt = y; dy/dt = -x":
-        const [x, y] = y;
+        Example for "dx/dt = y; dy/dt = -x" where variables are 'x', 'y':
+        Your entire output must be:
         return [y, -x];
     `;
 
@@ -40,9 +45,17 @@ export async function generateOdeFunction(odeString: string, varNames: string[],
             model: 'gemini-2.5-flash',
             contents: prompt,
         });
-        return response.text;
+        const functionBody = response.text.trim();
+        if (!functionBody.startsWith('return')) {
+            console.error("Invalid response from Gemini for ODE function:", functionBody);
+            throw new Error("The AI model returned an invalid function body. Please check your equations or try again.");
+        }
+        return functionBody;
     } catch (error) {
         console.error("Error generating ODE function with Gemini:", error);
+        if (error instanceof Error && error.message.includes("The AI model returned an invalid function body")) {
+            throw error;
+        }
         throw new Error("Failed to parse the ODE model. Please check the syntax.");
     }
 }

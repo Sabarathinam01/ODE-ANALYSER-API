@@ -106,8 +106,8 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ result, va
             if (bifurcationVarIndex === -1) throw new Error("Selected variable for bifurcation not found.");
 
             const functionString = await generateOdeFunction(odeString, variableNames, parameters.map(p => p.name));
-            const odeFunction = new Function('t', 'y', 'params', `
-                const [${variableNames.join(',')}] = y;
+            const odeFunction = new Function('t', '__y_vec', 'params', `
+                const [${variableNames.join(',')}] = __y_vec;
                 const {${parameters.map(p => p.name).join(',')}} = params;
                 ${functionString}
             `) as (t: number, y: number[], params: Record<string, number>) => number[];
@@ -189,7 +189,8 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ result, va
                                     <XAxis type="number" dataKey="x" name={phaseVarX} stroke="#A0AEC0" />
                                     <YAxis type="number" dataKey="y" name={phaseVarY} stroke="#A0AEC0" />
                                     <Tooltip cursor={{ strokeDasharray: '3 3' }} contentStyle={{ backgroundColor: 'rgba(31, 41, 55, 0.8)', border: '1px solid #4A5568' }} />
-                                    <Scatter name="Trajectory" data={phasePortraitData} fill="#2dd4bf" shape="dot" strokeWidth={0.1} r={0.5} />
+                                    {/* Fix: Changed shape from "dot" to "circle" as "dot" is not a valid shape type for the Scatter component. */}
+                                    <Scatter name="Trajectory" data={phasePortraitData} fill="#2dd4bf" shape="circle" strokeWidth={0.1} r={0.5} />
                                 </ScatterChart>
                             </ResponsiveContainer>
                         ) : <PlotPlaceholder title="Phase Portrait" />}
@@ -273,7 +274,8 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ result, va
                                         <XAxis type="number" dataKey="x" name={bifurcationParam} stroke="#A0AEC0" />
                                         <YAxis type="number" dataKey="y" name={bifurcationVar} stroke="#A0AEC0" />
                                         <Tooltip cursor={{ strokeDasharray: '3 3' }} contentStyle={{ backgroundColor: 'rgba(31, 41, 55, 0.8)', border: '1px solid #4A5568' }} />
-                                        <Scatter name="Attractor values" data={bifurcationData} fill="#a855f7" shape="dot" r={0.5} />
+                                        {/* Fix: Changed shape from "dot" to "circle" as "dot" is not a valid shape type for the Scatter component. */}
+                                        <Scatter name="Attractor values" data={bifurcationData} fill="#a855f7" shape="circle" r={0.5} />
                                     </ScatterChart>
                                 </ResponsiveContainer>
                             ) : <PlotPlaceholder title="Bifurcation Diagram" />}
