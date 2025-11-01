@@ -1,0 +1,5 @@
+{
+  "name": "Interactive ODE Analyzer",
+  "description": "An advanced web application to define, simulate, and analyze systems of ordinary differential equations (ODEs) up to ten dimensions. Users can specify their model, parameters, and initial conditions, then visualize phase portraits and time series, and compute equilibrium points, eigenvalues, Lyapunov exponents, and bifurcation diagrams using the RK4 method and Gemini AI for complex analysis.",
+  "requestFramePermissions": []
+}
